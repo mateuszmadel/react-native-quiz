@@ -1,13 +1,29 @@
-import { Text, TouchableOpacity, View} from "react-native";
+import { Text, TouchableOpacity, View,FlatList,RefreshControl} from "react-native";
 import React, {Component} from "react";
-import Row from "../components/Row";
+
 import {Button} from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
+import {Row, Table} from "react-native-table-component";
 
 
 
 
 export default class ResultsScreen extends Component{
+    state = {
+        refreshing: false
+    }
+    renderItem = ({item}) => {
+        const { nick, score, total, type, date } = item;
+        return <Row data={[nick, score + "/" + total, type, date]} textStyle={{margin:4}} borderStyle={{borderWidth: 1, borderColor: 'gray'}} />
+    }
+
+    onRefresh = () => {
+        this.setState({refreshing: true})
+        setTimeout(()=>{
+            this.setState({ refreshing: false});
+        },1000)
+    };
+
     render()
     {
         return (
@@ -20,16 +36,12 @@ export default class ResultsScreen extends Component{
                     />} type="clear" onPress={() => this.props.navigation.toggleDrawer()}/>
                     <Text style={styles.headerText}>Results</Text>
                 </View>
-                <View style={[styles.container, {flex: 4, padding: 20}]}>
-                    <Row data={tableHead} background={'#E0E0E0'}/>
-                    {
-                        data.map((dataRow, index) =>
-                            <Row
-                                key={index}
-                                data={dataRow}
-                            />
-                        )
-                    }
+                <View style={[styles.container, {flex: 4, padding: 10}]}>
+                    <Table style={styles.table}>
+                    <Row data={tableHead} textStyle={{margin: 5}} style={styles.headStyle}/>
+                    <FlatList renderItem={this.renderItem} data={results} keyExtractor={(item, index) => index.toString()}
+                              refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh.bind(this)} />}/>
+                    </Table>
                 </View>
                 <View style={styles.footer}>
                     <TouchableOpacity onPress={() => this.props.navigation.navigate('Home')} style={styles.button}>
@@ -41,8 +53,120 @@ export default class ResultsScreen extends Component{
     }
 }
 const tableHead=['Nick','Points','Type','Date']
-const data=[['nick1','18/20','quiz1','29-11-2020'],['nick2','14/20','quiz3','29-11-2020'],['nick3','11/20','quiz2','29-11-2020'],['nick4','18/20','quiz1','29-11-2020'],
-    ['nick5','18/20','quiz1','29-11-2020'],['nick6','14/20','quiz3','29-11-2020'],['nick7','11/20','quiz2','29-11-2020'],['nick8','18/20','quiz1','29-11-2020']]
+const results = [
+    {
+        "nick": "Marek",
+        "score": 18,
+        "total": 20,
+        "type": "historia",
+        "date": "2018-11-22"
+    },
+    {
+        "nick": "Jacek",
+        "score": 7,
+        "total": 20,
+        "type": "historia",
+        "date": "2018-12-22"
+    },
+    {
+        "nick": "Jan",
+        "score": 3,
+        "total": 30,
+        "type": "fizyka",
+        "date": "2018-12-22"
+    },
+    {
+        "nick": "Jan",
+        "score": 11,
+        "total": 20,
+        "type": "historia",
+        "date": "2018-12-22"
+    },
+    {
+        "nick": "Marek",
+        "score": 18,
+        "total": 20,
+        "type": "historia",
+        "date": "2018-11-22"
+    },
+    {
+        "nick": "Jacek",
+        "score": 7,
+        "total": 20,
+        "type": "historia",
+        "date": "2018-12-22"
+    },
+    {
+        "nick": "Jan",
+        "score": 3,
+        "total": 30,
+        "type": "fizyka",
+        "date": "2018-12-22"
+    },
+    {
+        "nick": "Jan",
+        "score": 11,
+        "total": 20,
+        "type": "historia",
+        "date": "2018-12-22"
+    },
+    {
+        "nick": "Marek",
+        "score": 18,
+        "total": 20,
+        "type": "historia",
+        "date": "2018-11-22"
+    },
+    {
+        "nick": "Jacek",
+        "score": 7,
+        "total": 20,
+        "type": "historia",
+        "date": "2018-12-22"
+    },
+    {
+        "nick": "Jan",
+        "score": 3,
+        "total": 30,
+        "type": "fizyka",
+        "date": "2018-12-22"
+    },
+    {
+        "nick": "Jan",
+        "score": 11,
+        "total": 20,
+        "type": "historia",
+        "date": "2018-12-22"
+    },
+    {
+        "nick": "Marek",
+        "score": 18,
+        "total": 20,
+        "type": "historia",
+        "date": "2018-11-22"
+    },
+    {
+        "nick": "Jacek",
+        "score": 7,
+        "total": 20,
+        "type": "historia",
+        "date": "2018-12-22"
+    },
+    {
+        "nick": "Jan",
+        "score": 3,
+        "total": 30,
+        "type": "fizyka",
+        "date": "2018-12-22"
+    },
+    {
+        "nick": "Jan",
+        "score": 11,
+        "total": 20,
+        "type": "historia",
+        "date": "2018-12-22"
+    },
+    ]
 const styles={
     header:{
         flex: 1,
@@ -66,8 +190,6 @@ const styles={
     },
     container: {
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     footer:{
         flex: 1,
@@ -88,6 +210,16 @@ const styles={
         borderRadius:5,
         paddingVertical:10,
         paddingHorizontal:25
+    },
+    table:{
+        marginBottom:40
+    },
+    headStyle: {
+        height: 40,
+        alignContent: "center",
+        justifyContent:"center",
+        backgroundColor: '#ddd',
+
     },
 
 
