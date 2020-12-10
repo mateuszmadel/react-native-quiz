@@ -6,9 +6,9 @@ function MyModal(props) {
         <Modal transparent={true} visible={props.visible}>
             <View style={styles.modalView}>
                 <View>
-                    <Text style={{fontSize: 24}}>Regulamin!</Text>
-                    <Text style={{fontSize: 16}}>1. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</Text>
-                    <Text style={{fontSize: 16}}>2. Donec tristique vehicula sem</Text>
+                    <Text style={{fontSize: 24,fontFamily:'Lora_400Regular'}}>Regulamin!</Text>
+                    <Text style={{fontSize: 16,fontFamily:'Roboto_400Regular'}}>1. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</Text>
+                    <Text style={{fontSize: 16,fontFamily:'Roboto_400Regular'}}>2. Donec tristique vehicula sem</Text>
                 </View>
                 <TouchableOpacity style={styles.openButton} onPress={props.onPress}>
                     <Text>Zgadzam się</Text>
