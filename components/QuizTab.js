@@ -1,14 +1,16 @@
 import React from "react";
-import { View, StyleSheet, Text} from "react-native";
+import {StyleSheet, Text, TouchableOpacity} from "react-native";
 
-export default ({ title,tags,description}) => {
+export default ({ title,tags,description,navigation,id}) => {
 
     return (
-        <View style={styles.tab}>
+        <TouchableOpacity style={styles.tab} onPress={() => navigation.navigate(title,{ id: id })}>
             <Text style={styles.title}>{title}</Text>
-            <Text style={styles.tags}>{tags}</Text>
-            <Text numberOfLines={3}>{description}</Text>
-        </View>
+            <Text style={styles.tags}>{tags.map(el=>{
+                return el+" "
+            })}</Text>
+            <Text style={{fontFamily:'Roboto_400Regular'}} numberOfLines={3}>{description}</Text>
+        </TouchableOpacity>
     );
 }
 const styles = StyleSheet.create({
@@ -22,10 +24,12 @@ const styles = StyleSheet.create({
     },
     title:{
         fontSize:24,
+        fontFamily:'Lora_400Regular'
     },
     tags:{
         fontSize:16,
         color:'blue',
-        marginVertical:10
+        marginVertical:10,
+        fontFamily:'Roboto_400Regular'
     }
 })

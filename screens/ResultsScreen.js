@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View,FlatList,RefreshControl} from "react-native";
+import { Text, TouchableOpacity, View,FlatList,RefreshControl,ActivityIndicator} from "react-native";
 import React, {Component} from "react";
 
 import {Button} from "react-native-elements";
@@ -10,11 +10,43 @@ import {Row, Table} from "react-native-table-component";
 
 export default class ResultsScreen extends Component{
     state = {
-        refreshing: false
+        refreshing: false,
+        loaded:false,
+        data:[]
     }
+    async componentDidMount() {
+        try {
+            const json = await this.getResults();
+            this.setState({data: json.map(el => {
+                    if(el.date===undefined) {
+                        return {
+                            ...el,
+                            date: el.createdOn.slice(0,10),
+                        };
+                    }
+                    else{
+                        return el
+                    }
+                    })
+                , loaded: true})
+        }catch (e) {
+            console.log(e)
+        }
+    }
+    getResults = async () => {
+        try {
+            let response = await fetch(
+                'http://tgryl.pl/quiz/results'
+            );
+            let json = await response.json();
+            return json;
+        } catch (error) {
+            console.error(error);
+        }
+    };
     renderItem = ({item}) => {
         const { nick, score, total, type, date } = item;
-        return <Row data={[nick, score + "/" + total, type, date]} textStyle={{margin:4}} borderStyle={{borderWidth: 1, borderColor: 'gray'}} />
+        return <Row data={[nick, score + "/" + total, type, date]} textStyle={{margin:4,fontFamily:'Roboto_400Regular'}} borderStyle={{borderWidth: 1, borderColor: 'gray'}} />
     }
 
     onRefresh = () => {
@@ -26,26 +58,28 @@ export default class ResultsScreen extends Component{
 
     render()
     {
+
         return (
             <View style={styles.container}>
                 <View style={styles.header}>
                     <Button style={styles.headerButton} icon={<Icon
                         name="bars"
                         size={32}
-                        color="black"
+                        color="white"
                     />} type="clear" onPress={() => this.props.navigation.toggleDrawer()}/>
                     <Text style={styles.headerText}>Results</Text>
                 </View>
                 <View style={[styles.container, {flex: 4, padding: 10}]}>
                     <Table style={styles.table}>
                     <Row data={tableHead} textStyle={{margin: 5}} style={styles.headStyle}/>
-                    <FlatList renderItem={this.renderItem} data={results} keyExtractor={(item, index) => index.toString()}
-                              refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh.bind(this)} />}/>
+                        {!this.state.loaded? <ActivityIndicator/> :(
+                    <FlatList renderItem={this.renderItem} data={this.state.data} keyExtractor={(item, index) => index.toString()}
+                              refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh.bind(this)} />}/>)}
                     </Table>
                 </View>
                 <View style={styles.footer}>
                     <TouchableOpacity onPress={() => this.props.navigation.navigate('Home')} style={styles.button}>
-                        <Text>Go back</Text>
+                        <Text style={{fontFamily:'Lora_400Regular'}}>Go back</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -53,120 +87,7 @@ export default class ResultsScreen extends Component{
     }
 }
 const tableHead=['Nick','Points','Type','Date']
-const results = [
-    {
-        "nick": "Marek",
-        "score": 18,
-        "total": 20,
-        "type": "historia",
-        "date": "2018-11-22"
-    },
-    {
-        "nick": "Jacek",
-        "score": 7,
-        "total": 20,
-        "type": "historia",
-        "date": "2018-12-22"
-    },
-    {
-        "nick": "Jan",
-        "score": 3,
-        "total": 30,
-        "type": "fizyka",
-        "date": "2018-12-22"
-    },
-    {
-        "nick": "Jan",
-        "score": 11,
-        "total": 20,
-        "type": "historia",
-        "date": "2018-12-22"
-    },
-    {
-        "nick": "Marek",
-        "score": 18,
-        "total": 20,
-        "type": "historia",
-        "date": "2018-11-22"
-    },
-    {
-        "nick": "Jacek",
-        "score": 7,
-        "total": 20,
-        "type": "historia",
-        "date": "2018-12-22"
-    },
-    {
-        "nick": "Jan",
-        "score": 3,
-        "total": 30,
-        "type": "fizyka",
-        "date": "2018-12-22"
-    },
-    {
-        "nick": "Jan",
-        "score": 11,
-        "total": 20,
-        "type": "historia",
-        "date": "2018-12-22"
-    },
-    {
-        "nick": "Marek",
-        "score": 18,
-        "total": 20,
-        "type": "historia",
-        "date": "2018-11-22"
-    },
-    {
-        "nick": "Jacek",
-        "score": 7,
-        "total": 20,
-        "type": "historia",
-        "date": "2018-12-22"
-    },
-    {
-        "nick": "Jan",
-        "score": 3,
-        "total": 30,
-        "type": "fizyka",
-        "date": "2018-12-22"
-    },
-    {
-        "nick": "Jan",
-        "score": 11,
-        "total": 20,
-        "type": "historia",
-        "date": "2018-12-22"
-    },
-    {
-        "nick": "Marek",
-        "score": 18,
-        "total": 20,
-        "type": "historia",
-        "date": "2018-11-22"
-    },
-    {
-        "nick": "Jacek",
-        "score": 7,
-        "total": 20,
-        "type": "historia",
-        "date": "2018-12-22"
-    },
-    {
-        "nick": "Jan",
-        "score": 3,
-        "total": 30,
-        "type": "fizyka",
-        "date": "2018-12-22"
-    },
-    {
-        "nick": "Jan",
-        "score": 11,
-        "total": 20,
-        "type": "historia",
-        "date": "2018-12-22"
-    },
-    ]
+
 const styles={
     header:{
         flex: 1,
@@ -176,12 +97,15 @@ const styles={
         justifyContent: 'center',
         borderBottomWidth:1,
         paddingLeft:10,
-        paddingRight:30
+        paddingRight:30,
+        backgroundColor:"#1565c0",
     },
     headerText:{
         fontSize:40,
         textAlign:'center',
-        flex:1
+        flex:1,
+        fontFamily:'Lora_400Regular',
+        color:"#fff"
     },
     headerButton: {
         flex: 1,
@@ -197,16 +121,17 @@ const styles={
         alignItems: 'center',
         justifyContent: 'center',
         borderTopWidth:1,
+        backgroundColor:"#1565c0",
     },
     footerText:{
-        fontSize:20
+        fontSize:20,
+        color:"#fff"
     },
     button:{
-        backgroundColor:'#E0E0E0',
+        backgroundColor:'#A6ABBD',
         justifyContent:'center',
         alignItems:'center',
         marginTop:10,
-        borderWidth:1,
         borderRadius:5,
         paddingVertical:10,
         paddingHorizontal:25

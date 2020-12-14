@@ -1,79 +1,10 @@
-import {Text, View,TouchableOpacity,Animated,Easing} from "react-native";
+import {Text, View,TouchableOpacity,Animated,Easing,TextInput} from "react-native";
 import React, {Component} from "react";
 import {Button} from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
 
-
-
-const quiz= [{
-        "question": "W którym mieście znajduje się stolica NATO ?",
-        "answers": [
-            {
-                "content": "Paryż",
-                "isCorrect": false
-            },
-            {
-                "content": "Bruksela",
-                "isCorrect": true
-            },
-            {
-                "content": "Amsterdam",
-                "isCorrect": false
-            },
-            {
-                "content": "Luksemburg",
-                "isCorrect": false
-            }
-        ],
-        "duration": 30
-        },
-    {
-    "question": "Jaki kolor ma chlorofil",
-    "answers": [
-        {
-            "content": "Czerwony",
-            "isCorrect": false
-        },
-        {
-            "content": "Zielony",
-            "isCorrect": true
-        },
-        {
-            "content": "Biały",
-            "isCorrect": false
-        },
-        {
-            "content": "Żółty",
-            "isCorrect": false
-        }
-    ],
-    "duration": 30
-},
-    {
-        "question": "Bitwa warszawska miała miejsce w roku:",
-        "answers": [
-            {
-                "content": "1917",
-                "isCorrect": false
-            },
-            {
-                "content": "1918",
-                "isCorrect": false
-            },
-            {
-                "content": "1919",
-                "isCorrect": false
-            },
-            {
-                "content": "1920",
-                "isCorrect": true
-            }
-        ],
-        "duration": 30
-    }
-
-]
 export default class QuizScreen extends Component{
+    _isMounted = false;
     state = {
         quiz:[],
         timer: null,
@@ -81,12 +12,21 @@ export default class QuizScreen extends Component{
         currQuestion:0,
         points:0,
         loaded:false,
-        finished:false
-
+        finished:false,
+        fetchedData:[],
+        nickname:""
 
     };
     animatedValue= new Animated.Value(0);
-    componentDidMount() {
+    async componentDidMount() {
+        this._isMounted=true;
+        try {
+            let json = await this.getData();
+            if (this._isMounted)
+            this.setState({fetchedData: json})
+        }catch (e) {
+            console.log(e)
+        }
         this.initialize()
         let timer = setInterval(this.tick, 1000);
         this.setState({timer});
@@ -95,7 +35,19 @@ export default class QuizScreen extends Component{
     }
     componentWillUnmount() {
         clearInterval(this.state.timer);
+        this._isMounted = false;
     }
+    getData = async () => {
+        try {
+            let response = await fetch(
+                'http://tgryl.pl/quiz/test/'+ this.props.route.params.params
+            );
+            let json = await response.json();
+            return json;
+        } catch (error) {
+            console.error(error);
+        }
+    };
     tick =() => {
         if(this.state.counter>0)
         this.setState({
@@ -113,7 +65,7 @@ export default class QuizScreen extends Component{
         Animated.timing(this.animatedValue,
             {
                 toValue: -300,
-                duration: 30000,
+                duration: this.state.counter*1000,
                 easing: Easing.linear,
                 useAnimatedDriver: true,
                 useNativeDriver:false
@@ -121,8 +73,8 @@ export default class QuizScreen extends Component{
     }
     initialize =()=>{
         this.setState({
-            quiz:quiz,
-            counter: 30,
+            quiz:this.state.fetchedData.tasks,
+            counter: this.state.fetchedData.tasks[this.state.currQuestion].duration,
             currQuestion:0,
             points:0,
             finished:false,
@@ -132,11 +84,13 @@ export default class QuizScreen extends Component{
     nextQuestion=()=>{
         if(this.state.currQuestion+1<this.state.quiz.length){
         this.setState({
-            counter: 30,
+            counter: this.state.quiz[this.state.currQuestion].duration,
             currQuestion:this.state.currQuestion+1,
-        })
+        },()=>{
             this.animatedValue.setValue(0)
             this.animate();
+        })
+
         }
         else{
             this.setState({
@@ -152,6 +106,27 @@ export default class QuizScreen extends Component{
         }
         this.nextQuestion()
     }
+    sendResult=async ()=>{
+        if(this.state.nickname!==""){
+            const response=await fetch('http://tgryl.pl/quiz/result', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nick: this.state.nickname,
+                    score: this.state.points,
+                    total: this.state.quiz.length,
+                    type: this.state.fetchedData.tags[0],
+                })
+            });
+
+            await response.json();
+
+            this.props.navigation.navigate('Results')
+        }
+    }
 
 
 
@@ -162,9 +137,10 @@ export default class QuizScreen extends Component{
                     <Button style={styles.headerButton} icon={<Icon
                         name="bars"
                         size={32}
-                        color="black"
+                        color="white"
                     />} type="clear" onPress={() => this.props.navigation.toggleDrawer()}/>
-                    <Text style={styles.headerText}>Quiz #1</Text>
+                    {this.state.loaded &&
+                    <Text style={styles.headerText}>{this.state.fetchedData.name}</Text>}
                 </View>
 
                 <View style={styles.content}>
@@ -179,35 +155,36 @@ export default class QuizScreen extends Component{
                         <Animated.View style={[styles.loadAmount, {transform: [{translateX: this.animatedValue}]}]}/>
                         </View>
                         <Text style={{
-                        fontSize: 20,
+                        fontSize: 16,
                         marginVertical: 10
                     }}>{this.state.quiz[this.state.currQuestion].question}
                         </Text>
-                        <Text numberOfLines={3}>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec tristique
-                        vehicula sem, non accumsan lorem malesuada quis. Vestibulum ut ullamcorper urna. Aliquam
-                        elementum erat vulputate justo euismod, vehicula condimentum ex hendrerit. Nulla ut magna nunc.
-                        Quisque quis sodales arcu. Praesent in ex ac sem fermentum interdum a nec nulla. Donec eu eros
-                        ac tortor rutrum hendrerit. Fusce feugiat justo dolor, et consectetur nulla finibus faucibus.
-                        Sed facilisis tincidunt sapien</Text>
                         <View style={styles.answers}>
-                        <TouchableOpacity style={styles.answer} onPress={() => this.checkAnswer(0)}>
-                        <Text>{this.state.quiz[this.state.currQuestion].answers[0].content}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.answer} onPress={() => this.checkAnswer(1)}>
-                        <Text>{this.state.quiz[this.state.currQuestion].answers[1].content}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.answer} onPress={() => this.checkAnswer(2)}>
-                        <Text>{this.state.quiz[this.state.currQuestion].answers[2].content}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.answer} onPress={() => this.checkAnswer(3)}>
-                        <Text>{this.state.quiz[this.state.currQuestion].answers[3].content}</Text>
-                        </TouchableOpacity>
+                            {
+                                this.state.quiz[this.state.currQuestion].answers.map((el,index)=>{
+                                    return(
+                                    <TouchableOpacity style={styles.answer} onPress={() => this.checkAnswer(index)} key={index}>
+                                        <Text style={styles.answerText}>{el.content}</Text>
+                                    </TouchableOpacity>)
+                                })
+                            }
+
                         </View>
                     </>
                     }
                     {this.state.finished &&
                     <View>
-                        <Text>Odpowiedziałeś poprawnie na {this.state.points} z {this.state.quiz.length} pytań</Text>
+                        <Text style={[styles.answerText,{margin:10}]}>Odpowiedziałeś poprawnie na {this.state.points} z {this.state.quiz.length} pytań</Text>
+                        <TextInput
+                            style={{ height: 40, borderColor: 'gray', borderWidth: 1,margin:10,padding:2}}
+                            onChangeText={text => this.setState({nickname:text})}
+                            value={this.state.nickname}
+
+                            placeholder={"Enter your nickname"}
+                        />
+                        <TouchableOpacity style={styles.sendButton} onPress={()=>this.sendResult()}>
+                            <Text>Zapisz wynik</Text>
+                        </TouchableOpacity>
                     </View>
                     }
                 </View>
@@ -230,12 +207,15 @@ const styles= {
         justifyContent: 'center',
         borderBottomWidth:1,
         paddingLeft:10,
-        paddingRight:30
+        paddingRight:30,
+        backgroundColor:"#1565c0",
     },
     headerText:{
-        fontSize:40,
+        fontSize:24,
         textAlign:'center',
-        flex:1
+        flex:1,
+        fontFamily:'Lora_400Regular',
+        color:"#fff"
     },
     headerButton: {
         flex: 1,
@@ -243,7 +223,8 @@ const styles= {
         backgroundColor:"lightgray"
     },
     content:{
-        padding:50,
+        paddingHorizontal:50,
+        paddingVertical:30,
         flex:4
     },
     quizTop:{
@@ -252,11 +233,12 @@ const styles= {
 
         justifyContent: "space-between",
         alignItems: "center",
-        margin:10
+        margin:5
 
     },
     quizTopText:{
-        fontSize:20
+        fontSize:20,
+        fontFamily:'Roboto_400Regular'
     },
     answers:{
         marginTop:10,
@@ -271,11 +253,16 @@ const styles= {
         alignItems: "center",
         margin: 10,
         borderWidth: 1,
-        width:"40%"
+        width:"42%"
+    },
+    answerText:{
+        textAlign:'center',
+        fontFamily:'Roboto_400Regular'
     },
     loadBar: {
         width: 300,
         height: 20,
+        margin:2,
         backgroundColor: 'white',
         overflow: 'hidden',
     },
@@ -285,4 +272,11 @@ const styles= {
         height: 20,
         backgroundColor: 'blue',
     },
+    sendButton:{
+        width:"50%",
+        margin:10,
+        padding:10,
+        borderWidth:1,
+        backgroundColor:"lightgray"
+    }
 }
