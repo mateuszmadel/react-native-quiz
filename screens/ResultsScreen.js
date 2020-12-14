@@ -17,7 +17,18 @@ export default class ResultsScreen extends Component{
     async componentDidMount() {
         try {
             const json = await this.getResults();
-            this.setState({data: json, loaded: true})
+            this.setState({data: json.map(el => {
+                    if(el.date===undefined) {
+                        return {
+                            ...el,
+                            date: el.createdOn.slice(0,10),
+                        };
+                    }
+                    else{
+                        return el
+                    }
+                    })
+                , loaded: true})
         }catch (e) {
             console.log(e)
         }
@@ -54,7 +65,7 @@ export default class ResultsScreen extends Component{
                     <Button style={styles.headerButton} icon={<Icon
                         name="bars"
                         size={32}
-                        color="black"
+                        color="white"
                     />} type="clear" onPress={() => this.props.navigation.toggleDrawer()}/>
                     <Text style={styles.headerText}>Results</Text>
                 </View>
@@ -86,13 +97,15 @@ const styles={
         justifyContent: 'center',
         borderBottomWidth:1,
         paddingLeft:10,
-        paddingRight:30
+        paddingRight:30,
+        backgroundColor:"#1565c0",
     },
     headerText:{
         fontSize:40,
         textAlign:'center',
         flex:1,
-        fontFamily:'Lora_400Regular'
+        fontFamily:'Lora_400Regular',
+        color:"#fff"
     },
     headerButton: {
         flex: 1,
@@ -108,16 +121,17 @@ const styles={
         alignItems: 'center',
         justifyContent: 'center',
         borderTopWidth:1,
+        backgroundColor:"#1565c0",
     },
     footerText:{
-        fontSize:20
+        fontSize:20,
+        color:"#fff"
     },
     button:{
-        backgroundColor:'#E0E0E0',
+        backgroundColor:'#A6ABBD',
         justifyContent:'center',
         alignItems:'center',
         marginTop:10,
-        borderWidth:1,
         borderRadius:5,
         paddingVertical:10,
         paddingHorizontal:25

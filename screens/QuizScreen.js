@@ -22,7 +22,6 @@ export default class QuizScreen extends Component{
         this._isMounted=true;
         try {
             let json = await this.getData();
-            console.log(json)
             if (this._isMounted)
             this.setState({fetchedData: json})
         }catch (e) {
@@ -108,13 +107,6 @@ export default class QuizScreen extends Component{
         this.nextQuestion()
     }
     sendResult=async ()=>{
-        console.log(JSON.stringify({
-            nick: this.state.nickname,
-            score: this.state.points,
-            total: this.state.quiz.length,
-            type: this.state.fetchedData.tags[0],
-            date:new Date().toISOString().slice(0,10)
-        }))
         if(this.state.nickname!==""){
             const response=await fetch('http://tgryl.pl/quiz/result', {
                 method: 'POST',
@@ -127,13 +119,11 @@ export default class QuizScreen extends Component{
                     score: this.state.points,
                     total: this.state.quiz.length,
                     type: this.state.fetchedData.tags[0],
-                    date:new Date().toISOString().slice(0,10)
                 })
             });
 
-            const content = await response.json();
+            await response.json();
 
-            console.log(content);
             this.props.navigation.navigate('Results')
         }
     }
@@ -147,7 +137,7 @@ export default class QuizScreen extends Component{
                     <Button style={styles.headerButton} icon={<Icon
                         name="bars"
                         size={32}
-                        color="black"
+                        color="white"
                     />} type="clear" onPress={() => this.props.navigation.toggleDrawer()}/>
                     {this.state.loaded &&
                     <Text style={styles.headerText}>{this.state.fetchedData.name}</Text>}
@@ -165,7 +155,7 @@ export default class QuizScreen extends Component{
                         <Animated.View style={[styles.loadAmount, {transform: [{translateX: this.animatedValue}]}]}/>
                         </View>
                         <Text style={{
-                        fontSize: 20,
+                        fontSize: 16,
                         marginVertical: 10
                     }}>{this.state.quiz[this.state.currQuestion].question}
                         </Text>
@@ -184,7 +174,7 @@ export default class QuizScreen extends Component{
                     }
                     {this.state.finished &&
                     <View>
-                        <Text style={styles.answerText}>Odpowiedziałeś poprawnie na {this.state.points} z {this.state.quiz.length} pytań</Text>
+                        <Text style={[styles.answerText,{margin:10}]}>Odpowiedziałeś poprawnie na {this.state.points} z {this.state.quiz.length} pytań</Text>
                         <TextInput
                             style={{ height: 40, borderColor: 'gray', borderWidth: 1,margin:10,padding:2}}
                             onChangeText={text => this.setState({nickname:text})}
@@ -217,13 +207,15 @@ const styles= {
         justifyContent: 'center',
         borderBottomWidth:1,
         paddingLeft:10,
-        paddingRight:30
+        paddingRight:30,
+        backgroundColor:"#1565c0",
     },
     headerText:{
         fontSize:24,
         textAlign:'center',
         flex:1,
-        fontFamily:'Lora_400Regular'
+        fontFamily:'Lora_400Regular',
+        color:"#fff"
     },
     headerButton: {
         flex: 1,
@@ -231,7 +223,8 @@ const styles= {
         backgroundColor:"lightgray"
     },
     content:{
-        padding:50,
+        paddingHorizontal:50,
+        paddingVertical:30,
         flex:4
     },
     quizTop:{
@@ -240,7 +233,7 @@ const styles= {
 
         justifyContent: "space-between",
         alignItems: "center",
-        margin:10
+        margin:5
 
     },
     quizTopText:{
@@ -263,11 +256,13 @@ const styles= {
         width:"42%"
     },
     answerText:{
+        textAlign:'center',
         fontFamily:'Roboto_400Regular'
     },
     loadBar: {
         width: 300,
         height: 20,
+        margin:2,
         backgroundColor: 'white',
         overflow: 'hidden',
     },

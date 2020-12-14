@@ -66,11 +66,11 @@ export default class App extends React.Component {
                 <NavigationContainer>
                     <MyModal visible={this.state.modalVisible} onPress={this.acceptRules}/>
                     <Drawer.Navigator initialRouteName="Home">
-                        <Drawer.Screen name="Home" component={HomeScreen}/>
-                        <Drawer.Screen name="Results" component={ResultsScreen}/>
+                        <Drawer.Screen name="Home" component={HomeScreen} options={{unmountOnBlur: true}}/>
+                        <Drawer.Screen name="Results" component={ResultsScreen} options={{unmountOnBlur: true}}/>
                         {
                             this.state.loaded&&this.state.fetchedData.map(el=>{
-                               return(<Drawer.Screen name={el.name} component={QuizScreen} initialParams={{ params: el.id }} options={{unmountOnBlur: true}}/>)
+                               return(<Drawer.Screen name={el.name} component={QuizScreen} initialParams={{ params: el.id }} key={el.id} options={{unmountOnBlur: true}}/>)
 
                             })
                         }
