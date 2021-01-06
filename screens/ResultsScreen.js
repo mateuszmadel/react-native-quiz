@@ -16,7 +16,7 @@ export default class ResultsScreen extends Component{
     }
     async componentDidMount() {
         try {
-            const json = await this.getResults();
+            const json = (await this.getResults()).reverse();
             this.setState({data: json.map(el => {
                     if(el.date===undefined) {
                         return {

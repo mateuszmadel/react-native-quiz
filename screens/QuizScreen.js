@@ -1,10 +1,14 @@
-import {Text, View,TouchableOpacity,Animated,Easing,TextInput} from "react-native";
+import {Text, View,TouchableOpacity,Animated,Easing,TextInput,ToastAndroid} from "react-native";
 import React, {Component} from "react";
 import {Button} from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
-
+import {shuffle} from 'lodash'
+import NetInfo from '@react-native-community/netinfo';
+import * as SQLite from "expo-sqlite";
+const db = SQLite.openDatabase('db.db');
 export default class QuizScreen extends Component{
     _isMounted = false;
+    isConnected=false;
     state = {
         quiz:[],
         timer: null,
@@ -20,17 +24,38 @@ export default class QuizScreen extends Component{
     animatedValue= new Animated.Value(0);
     async componentDidMount() {
         this._isMounted=true;
-        try {
-            let json = await this.getData();
-            if (this._isMounted)
-            this.setState({fetchedData: json})
-        }catch (e) {
-            console.log(e)
+        this.isConnected=await (await NetInfo.fetch()).isConnected
+        if(this.isConnected) {
+            try {
+                let json = await this.getData();
+                if (this._isMounted)
+                    this.setState({fetchedData: json},()=>{
+                        this.initialize()
+                        let timer = setInterval(this.tick, 1000);
+                        this.setState({timer});
+                    })
+            } catch (e) {
+                console.log(e)
+            }
         }
-        this.initialize()
-        let timer = setInterval(this.tick, 1000);
-        this.setState({timer});
-        this.animate();
+        else{
+                let testsData
+                 db.transaction(tx => {
+                    tx.executeSql('select * from tests', [], (_, {rows}) =>
+                        testsData = JSON.parse(JSON.stringify(rows._array)))
+                }, () => {
+                    console.log("err")
+                }, () => {
+                    testsData = testsData.find(el => el.id == this.props.route.params.params)
+                    if (this._isMounted)
+                        this.setState({fetchedData: JSON.parse(testsData.value)},()=>{
+                            this.initialize()
+                            let timer = setInterval(this.tick, 1000);
+                            this.setState({timer});
+                        })
+                })
+        }
+
 
     }
     componentWillUnmount() {
@@ -73,13 +98,13 @@ export default class QuizScreen extends Component{
     }
     initialize =()=>{
         this.setState({
-            quiz:this.state.fetchedData.tasks,
+            quiz:shuffle(this.state.fetchedData.tasks),
             counter: this.state.fetchedData.tasks[this.state.currQuestion].duration,
             currQuestion:0,
             points:0,
             finished:false,
             loaded:true
-        })
+        },()=>this.animate())
     }
     nextQuestion=()=>{
         if(this.state.currQuestion+1<this.state.quiz.length){
@@ -107,26 +132,33 @@ export default class QuizScreen extends Component{
         this.nextQuestion()
     }
     sendResult=async ()=>{
-        if(this.state.nickname!==""){
-            const response=await fetch('http://tgryl.pl/quiz/result', {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    nick: this.state.nickname,
-                    score: this.state.points,
-                    total: this.state.quiz.length,
-                    type: this.state.fetchedData.tags[0],
-                })
-            });
+        this.isConnected=await (await NetInfo.fetch()).isConnected
+        if(this.isConnected) {
+            if (this.state.nickname !== "") {
+                const response = await fetch('http://tgryl.pl/quiz/result', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nick: this.state.nickname,
+                        score: this.state.points,
+                        total: this.state.quiz.length,
+                        type: this.state.fetchedData.tags[0],
+                    })
+                });
 
-            await response.json();
+                await response.json();
 
-            this.props.navigation.navigate('Results')
+                this.props.navigation.navigate('Results')
+            }
+        }
+        else{
+            ToastAndroid.show('No internet connection, you cant save result.', ToastAndroid.SHORT);
         }
     }
+
 
 
 

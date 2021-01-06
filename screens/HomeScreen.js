@@ -4,7 +4,7 @@ import { Button } from 'react-native-elements';
 import Constants from 'expo-constants';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import QuizTab from "../components/QuizTab";
-
+import {shuffle} from 'lodash'
 
 export default class HomeScreen extends Component{
     state={
@@ -47,7 +47,7 @@ export default class HomeScreen extends Component{
                         {!this.state.loaded? <ActivityIndicator/> :(
                         <ScrollView>
                             {
-                               this.state.fetchedData.map((el) => (
+                               shuffle(this.state.fetchedData).map((el) => (
                                     <QuizTab title={el.name} tags={el.tags} description={el.description}
                                              key={el.id} navigation={this.props.navigation} id={el.id}/>
                                 ))}
