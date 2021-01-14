@@ -206,7 +206,7 @@ export default class QuizScreen extends Component{
                     }
                     {this.state.finished &&
                     <View>
-                        <Text style={[styles.answerText,{margin:10}]}>Odpowiedziałeś poprawnie na {this.state.points} z {this.state.quiz.length} pytań</Text>
+                        <Text style={[styles.answerText,{margin:10}]}>You answered correctly to {this.state.points} of {this.state.quiz.length} questions</Text>
                         <TextInput
                             style={{ height: 40, borderColor: 'gray', borderWidth: 1,margin:10,padding:2}}
                             onChangeText={text => this.setState({nickname:text})}
@@ -215,7 +215,7 @@ export default class QuizScreen extends Component{
                             placeholder={"Enter your nickname"}
                         />
                         <TouchableOpacity style={styles.sendButton} onPress={()=>this.sendResult()}>
-                            <Text>Zapisz wynik</Text>
+                            <Text>Save result</Text>
                         </TouchableOpacity>
                     </View>
                     }
