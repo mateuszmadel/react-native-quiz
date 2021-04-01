@@ -1,7 +1,7 @@
 # Quiz App
 Quiz app created with React Native.
 
-##Preview
+## Preview
 
 #### Home 
 ![PREVIEW](./docs/home.png)
